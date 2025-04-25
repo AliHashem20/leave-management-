@@ -122,9 +122,8 @@ class LeaveRequestController extends Controller
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
 
-        // Ensure only admin can delete
-        if (Auth::user()->role !== 'admin') {
-            return redirect()->route('leaveRequests.index')->with('error', 'Only admins can delete leave requests.');
+        if (Auth::user()->role !== 'admin' && (Auth::user()->id !== $leaveRequest->user_id || $leaveRequest->status !== 'Pending')) {
+            return redirect()->route('leaveRequests.index')->with('error', 'Only admins or employees with a Pending request can delete it.');
         }
 
         $leaveRequest->delete();

@@ -32,9 +32,7 @@
                         <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">End Date</th>
                         <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Reason</th>
                         <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-                        @if (Auth::user()->role === 'admin')
-                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
-                        @endif
+                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -75,6 +73,18 @@
                                             </button>
                                         </form>
                                     </div>
+                                </td>
+                            @elseif (Auth::user()->role === 'employee' && $request->status === 'Pending')
+                                <td class="px-4 py-2 text-sm">
+                                    <form action="{{ route('leaveRequests.destroy', $request->id) }}" method="POST"
+                                        style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="btn btn-danger bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-xs">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             @endif
                         </tr>
