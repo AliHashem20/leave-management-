@@ -43,6 +43,11 @@ class LeaveRequestController extends Controller
     // Show the form for creating a new leave request
     public function create()
     {
+        // If user is an admin, redirect to the leave request index
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('leaveRequests.index')->with('error', 'Admins cannot create leave requests.');
+        }
+
         return view('leaveRequests.create');
     }
 
@@ -50,9 +55,9 @@ class LeaveRequestController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'start_date' => ['required', 'date', 'after_or_equal:' . Carbon::tomorrow()->toDateString()], // start date must be tomorrow or later
-            'end_date' => ['required', 'date', 'after_or_equal:start_date'], // end date must be the same or after start date
-            'reason' => ['required', 'string'],
+            'start_date' => 'required|date|after:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string|max:1000',
         ]);
 
         $leaveRequest = new LeaveRequest();
@@ -72,13 +77,8 @@ class LeaveRequestController extends Controller
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
 
-        // Ensure employee can only edit their own pending requests
-        if (Auth::user()->role === 'employee' && $leaveRequest->user_id !== Auth::id()) {
-            return redirect()->route('leaveRequests.index')->with('error', 'You can only edit your own leave requests.');
-        }
-
-        if ($leaveRequest->status !== 'pending' && Auth::user()->role === 'employee') {
-            return redirect()->route('leaveRequests.index')->with('error', 'You can only edit pending leave requests.');
+        if (Auth::user()->role === 'employee') {
+            return redirect()->route('leaveRequests.index')->with('error', 'You can\'t edit leave requests.');
         }
 
         return view('leaveRequests.edit', compact('leaveRequest'));
@@ -89,20 +89,30 @@ class LeaveRequestController extends Controller
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
 
-        // Ensure employee can only update their own pending requests
-        if (Auth::user()->role === 'employee' && $leaveRequest->user_id !== Auth::id()) {
-            return redirect()->route('leaveRequests.index')->with('error', 'You can only edit your own leave requests.');
+        // Only the owner can edit their own pending request
+        if (Auth::user()->role === 'employee') {
+            return redirect()->route('leaveRequests.index')->with('error', 'You can\'t edit leave requests.');
         }
 
-        if ($leaveRequest->status !== 'pending' && Auth::user()->role === 'employee') {
-            return redirect()->route('leaveRequests.index')->with('error', 'You can only edit pending leave requests.');
-        }
-
-        $leaveRequest->update([
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'reason' => $request->reason,
+        // Validation rules
+        $request->validate([
+            'start_date' => 'required|date|after:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string|max:1000',
+            'status' => 'required|in:Pending,Approved,Rejected'
         ]);
+
+        // Update fields
+        $leaveRequest->start_date = $request->start_date;
+        $leaveRequest->end_date = $request->end_date;
+        $leaveRequest->reason = $request->reason;
+
+        // Only admin can update the status
+        if (Auth::user()->role === 'admin' && $request->has('status')) {
+            $leaveRequest->status = $request->status;
+        }
+
+        $leaveRequest->save();
 
         return redirect()->route('leaveRequests.index')->with('success', 'Leave request updated successfully.');
     }

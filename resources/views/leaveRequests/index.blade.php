@@ -84,11 +84,13 @@
         </div>
 
         <!-- New Leave Request Button -->
-        <div class="mt-6 text-right">
-            <a href="{{ route('leaveRequests.create') }}"
-                class="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-md text-sm">
-                Request New Leave
-            </a>
-        </div>
+        @if (Auth::user()->role === 'employee')
+            <div class="mt-6 text-right">
+                <a href="{{ route('leaveRequests.create') }}"
+                    class="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-md text-sm">
+                    Request New Leave
+                </a>
+            </div>
+        @endif
     </div>
 @endsection

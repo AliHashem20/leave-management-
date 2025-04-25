@@ -31,8 +31,10 @@
                             <!-- Display for authenticated users -->
                             <li><a href="{{ route('leaveRequests.index') }}"
                                     class="text-white hover:text-blue-300">Home</a></li>
-                            <li><a href="{{ route('leaveRequests.create') }}"
-                                    class="text-white hover:text-blue-300">Request Leave</a></li>
+                            @if (Auth::user()->role !== 'admin')
+                                <li><a href="{{ route('leaveRequests.create') }}"
+                                        class="text-white hover:text-blue-300">Request Leave</a></li>
+                            @endif
 
                             <!-- Show user name and Logout -->
                             <li class="text-white">Hello, {{ Auth::user()->name }}</li>
