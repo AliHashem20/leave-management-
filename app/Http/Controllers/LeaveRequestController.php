@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class LeaveRequestController extends Controller
 {
-   
+
     // Display a listing of leave requests
     public function index()
     {
@@ -16,9 +16,9 @@ class LeaveRequestController extends Controller
 
         // If admin, show all requests; if employee, show their own requests
         if ($user->role === 'admin') {
-            $leaveRequests = LeaveRequest::all();
+            $leaveRequests = LeaveRequest::paginate(10); // Directly paginate the query
         } else {
-            $leaveRequests = LeaveRequest::where('user_id', $user->id)->get();
+            $leaveRequests = LeaveRequest::where('user_id', $user->id)->paginate(10); // Paginate based on user_id
         }
 
         return view('leaveRequests.index', compact('leaveRequests'));
@@ -55,7 +55,7 @@ class LeaveRequestController extends Controller
     public function edit($id)
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
-        
+
         // Ensure employee can only edit their own pending requests
         if (Auth::user()->role === 'employee' && $leaveRequest->user_id !== Auth::id()) {
             return redirect()->route('leaveRequests.index')->with('error', 'You can only edit your own leave requests.');
@@ -72,7 +72,7 @@ class LeaveRequestController extends Controller
     public function update(Request $request, $id)
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
-        
+
         // Ensure employee can only update their own pending requests
         if (Auth::user()->role === 'employee' && $leaveRequest->user_id !== Auth::id()) {
             return redirect()->route('leaveRequests.index')->with('error', 'You can only edit your own leave requests.');
