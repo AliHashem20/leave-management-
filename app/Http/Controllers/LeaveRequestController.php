@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class LeaveRequestController extends Controller
 {
@@ -16,12 +17,27 @@ class LeaveRequestController extends Controller
 
         // If admin, show all requests; if employee, show their own requests
         if ($user->role === 'admin') {
-            $leaveRequests = LeaveRequest::paginate(10); // Directly paginate the query
+            $leaveRequests = LeaveRequest::with('user')
+                ->orderBy('created_at', 'asc')
+                ->get();
+            $statistics = [
+                'Approved' => LeaveRequest::where('status', 'Approved')->count(),
+                'Pending' => LeaveRequest::where('status', 'Pending')->count(),
+                'Rejected' => LeaveRequest::where('status', 'Rejected')->count(),
+            ];
         } else {
-            $leaveRequests = LeaveRequest::where('user_id', $user->id)->paginate(10); // Paginate based on user_id
+            $leaveRequests = LeaveRequest::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $statistics = [
+                'Approved' => LeaveRequest::where('user_id', $user->id)->where('status', 'Approved')->count(),
+                'Pending' => LeaveRequest::where('user_id', $user->id)->where('status', 'Pending')->count(),
+                'Rejected' => LeaveRequest::where('user_id', $user->id)->where('status', 'Rejected')->count(),
+            ];
         }
 
-        return view('leaveRequests.index', compact('leaveRequests'));
+        return view('leaveRequests.index', compact('leaveRequests', 'statistics'));
     }
 
     // Show the form for creating a new leave request
@@ -33,10 +49,10 @@ class LeaveRequestController extends Controller
     // Store a newly created leave request in storage
     public function store(Request $request)
     {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date',
-            'reason' => 'required|string|max:255',
+        $validated = $request->validate([
+            'start_date' => ['required', 'date', 'after_or_equal:' . Carbon::tomorrow()->toDateString()], // start date must be tomorrow or later
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'], // end date must be the same or after start date
+            'reason' => ['required', 'string'],
         ]);
 
         $leaveRequest = new LeaveRequest();
