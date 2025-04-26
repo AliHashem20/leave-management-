@@ -7,7 +7,7 @@
 <title>Leave Management System</title>
 <!-- Bootstrap CDN -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-<title>Your App</title>
+<title>My App</title>
 <link rel="icon" href="{{ asset('exit.png') }}" type="image/x-icon">
 <script src="https://cdn.tailwindcss.com"></script> <!-- Add this line -->
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -76,6 +76,32 @@
         <footer class="mt-5 text-center">
             <p>&copy; {{ date('Y') }} Leave Management System</p>
         </footer>
+
+        <!-- Custom date script -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const startDateInput = document.getElementById("start_date");
+                const endDateInput = document.getElementById("end_date");
+
+                if (startDateInput && endDateInput) {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const formattedDate = tomorrow.toISOString().split("T")[0];
+                    startDateInput.setAttribute("min", formattedDate);
+
+                    startDateInput.addEventListener("change", function() {
+                        const startDate = new Date(startDateInput.value);
+                        const endDate = new Date(endDateInput.value);
+
+                        if (endDate < startDate) {
+                            endDateInput.value = startDateInput.value;
+                        }
+
+                        endDateInput.setAttribute("min", startDateInput.value);
+                    });
+                }
+            });
+        </script>
     </div>
 </body>
 

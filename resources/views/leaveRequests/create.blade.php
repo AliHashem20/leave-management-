@@ -26,31 +26,4 @@
                 Request</button>
         </form>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const startDateInput = document.getElementById('start_date');
-            const endDateInput = document.getElementById('end_date');
-
-            // Set the minimum start date to tomorrow
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1); // Tomorrow
-            const formattedDate = tomorrow.toISOString().split('T')[0];
-            startDateInput.setAttribute('min', formattedDate);
-
-            // When start date changes, update end date validation
-            startDateInput.addEventListener('change', function() {
-                const startDate = new Date(startDateInput.value);
-                const endDate = new Date(endDateInput.value);
-
-                // If end date is less than start date, set it to start date
-                if (endDate < startDate) {
-                    endDateInput.value = startDateInput.value;
-                }
-
-                // Also ensure the end date is not before the start date
-                endDateInput.setAttribute('min', startDateInput.value);
-            });
-        });
-    </script>
 @endsection
